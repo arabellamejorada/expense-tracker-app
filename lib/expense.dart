@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'expense_item.dart';
+import 'model/expense_item.dart';
 
 class ExpenseTrackerHome extends StatefulWidget {
   const ExpenseTrackerHome({super.key});
@@ -10,7 +10,6 @@ class ExpenseTrackerHome extends StatefulWidget {
 
 class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
   final List<Expense> _expenses = [];
-  double _totalExpenses = 0.0;
 
   void _addExpense(String title, double amount, DateTime date, String category) {
     setState(() {
@@ -20,7 +19,6 @@ class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
         date: date,
         category: category,
       ));
-      _totalExpenses += amount;
     });
   }
 
@@ -57,27 +55,36 @@ class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Total expenses card
+            // Chart placeholder
             Container(
               width: double.infinity,
+              height: 200,
               margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
+                color: Colors.grey[100],
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[300]!),
               ),
-              child: Column(
-                children: [
-                  const Text(
-                    'Total Expenses',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '₱${_totalExpenses.toStringAsFixed(2)}',
-                    style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                  ),
-                ],
+              child: const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.bar_chart,
+                      size: 48,
+                      color: Colors.grey,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Chart Placeholder',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             
