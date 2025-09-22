@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'model/expense_item.dart';
+import 'new_expense.dart';
 
 class ExpenseTrackerHome extends StatefulWidget {
   const ExpenseTrackerHome({super.key});
@@ -23,10 +23,11 @@ class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
   }
 
   void _navigateToAddExpense() async {
-    final result = await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const ExpenseItemScreen(),
-      ),
+    final result = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const NewExpenseModal(),
     );
     
     if (result != null) {
