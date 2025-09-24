@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'model/expense_item.dart';
 
 class NewExpenseModal extends StatefulWidget {
-  const NewExpenseModal({super.key});
+  final Function(String, double, DateTime, String) onExpenseAdded;
+  
+  const NewExpenseModal({
+    super.key, 
+    required this.onExpenseAdded,
+  });
 
   @override
   State<NewExpenseModal> createState() => _NewExpenseModalState();
@@ -13,9 +19,7 @@ class _NewExpenseModalState extends State<NewExpenseModal> {
   final _formKey = GlobalKey<FormState>();
   
   DateTime _selectedDate = DateTime.now();
-  String _selectedCategory = 'Food';
-  
-  final List<String> _categories = ['Food', 'Travel', 'Leisure', 'Work'];
+  String _selectedCategory = ExpenseCategory.categoryNames.first;
 
   @override
   void dispose() {
@@ -28,8 +32,8 @@ class _NewExpenseModalState extends State<NewExpenseModal> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
+      firstDate: ExpenseConstants.minDate,
+      lastDate: ExpenseConstants.maxDate,
     );
     if (picked != null && picked != _selectedDate) {
       setState(() {
@@ -38,20 +42,15 @@ class _NewExpenseModalState extends State<NewExpenseModal> {
     }
   }
 
-  void _saveExpense() {
+  void _submitExpenseData() {
     if (_formKey.currentState!.validate()) {
       final title = _titleController.text.trim();
       final amount = double.tryParse(_amountController.text) ?? 0.0;
       
-      // Create expense object and return it to the previous screen
-      final expense = {
-        'title': title,
-        'amount': amount,
-        'date': _selectedDate,
-        'category': _selectedCategory,
-      };
+      // Call the callback to add expense
+      widget.onExpenseAdded(title, amount, _selectedDate, _selectedCategory);
       
-      Navigator.of(context).pop(expense);
+      Navigator.of(context).pop();
     }
   }
 
@@ -130,12 +129,12 @@ class _NewExpenseModalState extends State<NewExpenseModal> {
                     // Amount field
                     TextFormField(
                       controller: _amountController,
-                      decoration: const InputDecoration(
-                        labelText: 'Amount in Philippine Peso',
+                      decoration: InputDecoration(
+                        labelText: 'Amount in ${ExpenseConstants.currencyName}',
                         hintText: 'Enter amount',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.attach_money),
-                        prefixText: '₱',
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.attach_money),
+                        prefixText: ExpenseConstants.currency,
                       ),
                       keyboardType: TextInputType.number,
                       validator: (value) {
@@ -143,8 +142,8 @@ class _NewExpenseModalState extends State<NewExpenseModal> {
                           return 'Please enter an amount';
                         }
                         final amount = double.tryParse(value);
-                        if (amount == null || amount <= 0) {
-                          return 'Please enter a valid amount greater than 0';
+                        if (amount == null || amount < ExpenseConstants.minAmount) {
+                          return 'Please enter a valid amount greater than ${ExpenseConstants.minAmount}';
                         }
                         return null;
                       },
@@ -184,10 +183,17 @@ class _NewExpenseModalState extends State<NewExpenseModal> {
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.category),
                       ),
-                      items: _categories.map((String category) {
+                      items: ExpenseCategory.categoryNames.map((String category) {
+                        final categoryEnum = ExpenseCategory.fromName(category);
                         return DropdownMenuItem<String>(
                           value: category,
-                          child: Text(category),
+                          child: Row(
+                            children: [
+                              Icon(categoryEnum.icon, color: categoryEnum.color, size: 20),
+                              const SizedBox(width: 8),
+                              Text(category),
+                            ],
+                          ),
                         );
                       }).toList(),
                       onChanged: (String? newValue) {
@@ -202,7 +208,7 @@ class _NewExpenseModalState extends State<NewExpenseModal> {
                     
                     // Save button
                     ElevatedButton.icon(
-                      onPressed: _saveExpense,
+                      onPressed: _submitExpenseData,
                       icon: const Icon(Icons.save),
                       label: const Text('Save Expense'),
                       style: ElevatedButton.styleFrom(

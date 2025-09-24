@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../expense.dart';
+import '../model/expense_item.dart';
 
 class ExpenseItemWidget extends StatelessWidget {
   final Expense expense;
@@ -11,6 +11,8 @@ class ExpenseItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final categoryEnum = ExpenseCategory.fromName(expense.category);
+    
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
@@ -34,7 +36,7 @@ class ExpenseItemWidget extends StatelessWidget {
                   const SizedBox(height: 4),
                   // Amount
                   Text(
-                    '₱${expense.amount.toStringAsFixed(2)}',
+                    '${ExpenseConstants.currency}${expense.amount.toStringAsFixed(2)}',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -53,11 +55,11 @@ class ExpenseItemWidget extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: _getCategoryColor(expense.category),
+                    color: categoryEnum.color,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
-                    _getCategoryIcon(expense.category),
+                    categoryEnum.icon,
                     color: Colors.white,
                     size: 20,
                   ),
@@ -77,35 +79,5 @@ class ExpenseItemWidget extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  IconData _getCategoryIcon(String category) {
-    switch (category.toLowerCase()) {
-      case 'food':
-        return Icons.restaurant;
-      case 'travel':
-        return Icons.directions_car;
-      case 'leisure':
-        return Icons.sports_esports;
-      case 'work':
-        return Icons.work;
-      default:
-        return Icons.attach_money;
-    }
-  }
-
-  Color _getCategoryColor(String category) {
-    switch (category.toLowerCase()) {
-      case 'food':
-        return Colors.orange;
-      case 'travel':
-        return Colors.blue;
-      case 'leisure':
-        return Colors.purple;
-      case 'work':
-        return Colors.teal;
-      default:
-        return Colors.grey;
-    }
   }
 }

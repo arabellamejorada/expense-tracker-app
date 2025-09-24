@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'new_expense.dart';
+import 'model/expense_item.dart';
 
 class ExpenseTrackerHome extends StatefulWidget {
   const ExpenseTrackerHome({super.key});
@@ -22,22 +23,35 @@ class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
     });
   }
 
+  void _deleteExpense(int index) {
+    final deletedExpense = _expenses[index];
+    setState(() {
+      _expenses.removeAt(index);
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${deletedExpense.description} deleted'),
+        action: SnackBarAction(
+          label: 'Undo',
+          onPressed: () {
+            setState(() {
+              _expenses.insert(index, deletedExpense);
+            });
+          },
+        ),
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
   void _navigateToAddExpense() async {
-    final result = await showModalBottomSheet<Map<String, dynamic>>(
+    await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const NewExpenseModal(),
+      builder: (context) => NewExpenseModal(onExpenseAdded: _addExpense),
     );
-    
-    if (result != null) {
-      _addExpense(
-        result['title'],
-        result['amount'],
-        result['date'],
-        result['category'],
-      );
-    }
   }
 
   @override
@@ -105,21 +119,74 @@ class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
                 itemCount: _expenses.length,
                 itemBuilder: (context, index) {
                   final expense = _expenses[index];
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        child: Icon(_getCategoryIcon(expense.category)),
+                  return Dismissible(
+                    key: Key(expense.description + expense.date.toString()),
+                    background: Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      title: Text(expense.description),
-                      subtitle: Text(
-                        '${expense.category} • ${expense.date.day}/${expense.date.month}/${expense.date.year}',
+                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.only(left: 20),
+                      child: const Icon(
+                        Icons.delete,
+                        color: Colors.white,
+                        size: 24,
                       ),
-                      trailing: Text(
-                        '₱${expense.amount.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                    ),
+                    secondaryBackground: Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.only(right: 20),
+                      child: const Icon(
+                        Icons.delete,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    confirmDismiss: (direction) async {
+                      return await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Delete Expense'),
+                          content: Text('Are you sure you want to delete "${expense.description}"?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(true),
+                              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                            ),
+                          ],
+                        ),
+                      ) ?? false;
+                    },
+                    onDismissed: (direction) {
+                      _deleteExpense(index);
+                    },
+                    child: Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          child: Icon(_getCategoryIcon(expense.category)),
+                        ),
+                        title: Text(expense.description),
+                        subtitle: Text(
+                          '${expense.category} • ${expense.date.day}/${expense.date.month}/${expense.date.year}',
+                        ),
+                        trailing: Text(
+                          '${ExpenseConstants.currency}${expense.amount.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     ),
@@ -142,31 +209,6 @@ class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
   }
 
   IconData _getCategoryIcon(String category) {
-    switch (category.toLowerCase()) {
-      case 'food':
-        return Icons.restaurant;
-      case 'travel':
-        return Icons.directions_car;
-      case 'leisure':
-        return Icons.sports_esports;
-      case 'work':
-        return Icons.work;
-      default:
-        return Icons.attach_money;
-    }
+    return ExpenseCategory.fromName(category).icon;
   }
-}
-
-class Expense {
-  final String description;
-  final double amount;
-  final DateTime date;
-  final String category;
-
-  Expense({
-    required this.description,
-    required this.amount,
-    required this.date,
-    required this.category,
-  });
 }
