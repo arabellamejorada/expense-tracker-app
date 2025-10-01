@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'new_expense.dart';
 import 'model/expense_item.dart';
+import 'widget/chart.dart';
 
 class ExpenseTrackerHome extends StatefulWidget {
   const ExpenseTrackerHome({super.key});
@@ -70,38 +71,8 @@ class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Chart placeholder
-            Container(
-              width: double.infinity,
-              height: 200,
-              margin: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey[300]!),
-              ),
-              child: const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.bar_chart,
-                      size: 48,
-                      color: Colors.grey,
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Chart Placeholder',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            // Expense Chart
+            Chart(expenses: _expenses),
             
             // Expenses list
             if (_expenses.isNotEmpty) ...[
